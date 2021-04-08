@@ -110,6 +110,7 @@ def save_data(df, database_filename):
 
     engine = create_engine('sqlite:///{}'.format(database_filename))
     df.to_sql('disaster_response_data', engine, index=False)
+    df.to_excel('disaster_response_data.xlsx', index=False)
 
 
 def main():

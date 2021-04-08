@@ -33,13 +33,14 @@ engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('disaster_response_data', engine)
 
 # load model
-model = joblib.load("../models/classifier2.pkl")
+model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
 @app.route('/')
 @app.route('/index')
 def index():
+    # MAYBE USE THE 10 MOST USED WORD OR SUCH
     
     # extract data needed for visuals
     # TODO: Below is an example - modify to extract data for your own visuals
