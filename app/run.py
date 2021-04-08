@@ -139,7 +139,8 @@ def index():
             'data': [
                 Bar(
                     x=genre_names,
-                    y=genre_counts
+                    y=genre_counts,
+                    marker={'color': 'black'}
                 )
             ],
 
@@ -149,8 +150,8 @@ def index():
                     'title': "Count"
                 },
                 'xaxis': {
-                    'title': "Genre"
-                }
+                    'title': "Genre",
+                },
             }
         },
 
@@ -158,7 +159,8 @@ def index():
             'data': [
                 Bar(
                     x=category_name_high_freq,
-                    y=category_count_high_freq
+                    y=category_count_high_freq,
+                    marker={'color': 'red'}
                 )
             ],
 
@@ -169,7 +171,8 @@ def index():
                 },
                 'xaxis': {
                     'title': "Category"
-                }
+                },
+
             }
         },
 
@@ -177,7 +180,8 @@ def index():
             'data': [
                 Bar(
                     x=category_name_least_freq,
-                    y=category_count_least_freq
+                    y=category_count_least_freq,
+                    marker={'color': 'gold'}
                 )
             ],
 
@@ -188,7 +192,7 @@ def index():
                 },
                 'xaxis': {
                     'title': "Category"
-                }
+                },
             }
         }
     ]
