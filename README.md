@@ -15,7 +15,7 @@ Repository contains code (and data) to categorize disaster messages using a supe
 |- disaster_categories.csv  # input data
 |- disaster_messages.csv  # input data
 |- process_data.py      # code to preprocess data
-|- InsertDatabaseName.db   # database to save cleaned data to
+|- DisasterResponse.db   # database to save cleaned data to
 
 - models
 |- train_classifier.py  # code to train classifier and export model
@@ -33,4 +33,12 @@ Repository contains code (and data) to categorize disaster messages using a supe
 2. Run the following command in the app's directory to run your web app.
     `python run.py`
 
-3. Go to http://0.0.0.0:3001/
+3. Go to http://127.0.0.1:5000/
+
+### Comments
+* The home screen of the web app displays a few bar plots showing the distribution of some information
+of the training data. The training data are clearly not evenly distributed among the different 
+categories which may skew the results!
+* The classifier.pkl file tends to get really large (>100MB) which Github doesn't allow to be 
+uploaded. Therefore I uploaded a smaller file that was only trained on fewer training data and
+may therefore not always be very accurate. Feel free to use the code and train the model yourself!
