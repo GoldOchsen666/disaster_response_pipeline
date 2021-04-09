@@ -1,9 +1,10 @@
 import json
 import plotly
+import numpy as np
 import pandas as pd
 import re
 
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
@@ -14,7 +15,7 @@ from plotly.graph_objs import Bar
 import joblib
 from sqlalchemy import create_engine
 
-from collections import Counter
+# from collections import Counter
 
 import nltk
 nltk.download('stopwords')
@@ -43,71 +44,26 @@ df = pd.read_sql_table('disaster_response_data', engine)
 model = joblib.load("../models/classifier.pkl")
 
 
-# index webpage displays cool visuals and receives user input text for model
-# @app.route('/')
-# @app.route('/index')
-# def index():
-#     # MAYBE USE THE 10 MOST USED WORD OR SUCH
-#
-#     # extract data needed for visuals
-#     # TODO: Below is an example - modify to extract data for your own visuals
-#     genre_counts = df.groupby('genre').count()['message']
-#     genre_names = list(genre_counts.index)
-#
-#     # create visuals
-#     # TODO: Below is an example - modify to create your own visuals
-#     graphs = [
-#         {
-#             'data': [
-#                 Bar(
-#                     x=genre_names,
-#                     y=genre_counts
-#                 )
-#             ],
-#
-#             'layout': {
-#                 'title': 'Distribution of Message Genres',
-#                 'yaxis': {
-#                     'title': "Count"
-#                 },
-#                 'xaxis': {
-#                     'title': "Genre"
-#                 }
-#             }
-#         }
-#     ]
-#
-#     # encode plotly graphs in JSON
-#     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-#     graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
-#
-#     # render web page with plotly graphs
-#     return render_template('master.html', ids=ids, graphJSON=graphJSON)
-
-
 @app.route('/')
 @app.route('/index')
 def index():
 
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
 
     # 1) genre distribution
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
 
-    # category distribution
+    # 2) & 3) category distribution
     category_dist = df.loc[:, 'related':].mean().sort_values(ascending=False)
 
     # 2) most frequent
     category_name_high_freq = category_dist[:5].index
-    category_count_high_freq = category_dist[:5].values
+    category_count_high_freq = np.round(category_dist[:5].values, 4)
 
     # 3) least frequent
     category_name_least_freq = category_dist[-5:].index
-    category_count_least_freq = category_dist[-5:].values
-
-
+    category_count_least_freq = np.round(category_dist[-5:].values, 4)
 
     # # find most frequent words
     # all_tokens = []
@@ -133,7 +89,6 @@ def index():
     #     k += 1
 
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -165,9 +120,9 @@ def index():
             ],
 
             'layout': {
-                'title': 'Top 5 most frequent categories [in %]',
+                'title': 'Top 5 most frequent categories',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Frequency"
                 },
                 'xaxis': {
                     'title': "Category"
@@ -186,9 +141,9 @@ def index():
             ],
 
             'layout': {
-                'title': 'Top 5 least frequent categories [in %]',
+                'title': 'Top 5 least frequent categories',
                 'yaxis': {
-                    'title': "Count"
+                    'title': "Frequency"
                 },
                 'xaxis': {
                     'title': "Category"

@@ -1,6 +1,7 @@
 import sys
 import pickle
 import pandas as pd
+import re
 
 from sqlalchemy import create_engine
 from nltk.tokenize import word_tokenize
@@ -31,7 +32,7 @@ def load_data(database_filepath):
     Returns
     -------
     X : predictors
-    y : response
+    Y : response
     categories : response categories
 
     """
@@ -39,7 +40,7 @@ def load_data(database_filepath):
     # load data from database
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table('disaster_response_data', con=engine)
-    df = df.loc[:1000, :]
+    df = df.loc[:500, :]
 
     # select response categories, predictors and responses
     categories = df.loc[:, 'related':].columns
@@ -63,20 +64,25 @@ def tokenize(text):
 
     """
 
-    tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
-    clean_tokens = []
+    # remove punctuation
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text)
 
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+    # tokenize text
+    tokens = word_tokenize(text)
+
+    # remove stopwords --> issue with parallel jobs!!!
+    # tokens = [tok for tok in tokens if tok not in stopwords.words('english')]
+
+    # lemmatize words and set to lower case
+    lemmatizer = WordNetLemmatizer()
+    clean_tokens = [lemmatizer.lemmatize(tok, pos='n').lower().strip() for tok in tokens]
 
     return clean_tokens
 
 
 def build_model():
     """
-    machine learning pipeline to train a MultiOutputClassifie
+    machine learning pipeline to train and optimize a MultiOutputClassifier using GridSearchCV
 
     Returns
     -------
@@ -85,37 +91,41 @@ def build_model():
 
     """
 
-    # NLP pipeline RandomForest
+    # pipeline RandomForest
+    pipeline = Pipeline([
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
+        ('clf', MultiOutputClassifier(estimator=RandomForestClassifier()))
+    ])
+
+    # parameters for grid search to optimize model --> choose
+    # more parameters makes calculation more expensive
+    # may run a few hours depending on the chosen parameters
+    parameters = {
+        'vect__ngram_range': ((1, 1), (1, 2)),
+        'vect__max_df': (0.5, 0.75, 1.0),
+        'vect__max_features': (None, 5000, 10000),
+        'tfidf__use_idf': (True, False),
+        'clf__estimator__max_depth': (None, 10, 20),
+        'clf__estimator__n_estimators': [100, 200],
+        'clf__estimator__min_samples_split': [2, 3, 4]
+    }
+
+    # pipeline KNN
     # pipeline = Pipeline([
     #     ('vect', CountVectorizer(tokenizer=tokenize)),
     #     ('tfidf', TfidfTransformer()),
-    #     ('clf', MultiOutputClassifier(estimator=RandomForestClassifier()))
+    #     ('clf', MultiOutputClassifier(KNeighborsClassifier()))
     # ])
-
-    # # parameters for grid search to optimize model
+    #
     # parameters = {
     #     'vect__ngram_range': ((1, 1), (1, 2)),
     #     'vect__max_df': (0.5, 0.75, 1.0),
     #     'vect__max_features': (None, 1000, 5000, 10000),
-    #     'tfidf__use_idf': (True, False),
-    # #    'clf__estimator__n_estimators': [100, 200],
-    #     'clf__estimator__min_samples_split': [2, 3, 4]
+    #     # 'tfidf__use_idf': (True, False),
+    #     # 'clf__estimator__n_neighbors': [5, 11],
+    #     # 'clf__estimator__leaf_size': [20, 30, 50]
     # }
-
-    pipeline = Pipeline([
-        ('vect', CountVectorizer(tokenizer=tokenize)),
-        ('tfidf', TfidfTransformer()),
-        ('clf', MultiOutputClassifier(KNeighborsClassifier()))
-    ])
-
-    parameters = {
-        'vect__ngram_range': ((1, 1), (1, 2)),
-        'vect__max_df': (0.5, 0.75, 1.0),
-        'vect__max_features': (None, 1000, 5000, 10000),
-        'tfidf__use_idf': (True, False),
-        'clf__estimator__n_neighbors': [5, 11],
-        'clf__estimator__leaf_size': [20, 30, 50]
-    }
 
     cv = GridSearchCV(pipeline, param_grid=parameters, n_jobs=-1)
 
@@ -138,11 +148,20 @@ def evaluate_model(model, X_test, y_test, category_names):
 
     """
 
+    df_out = pd.DataFrame(columns=['category', 'recall', 'precision', 'f1-score'])
+
     y_pred = model.predict(X_test)
 
     for ind, cat in enumerate(category_names):
-        print(cat)
-        print(classification_report(y_test[:, ind], y_pred[:, ind]))
+        report_dict = classification_report(y_test[:, ind], y_pred[:, ind], output_dict=True)
+
+        df_out.loc[ind, 'category'] = cat
+        df_out.loc[ind, 'recall'] = report_dict['weighted avg']['recall']
+        df_out.loc[ind, 'precision'] = report_dict['weighted avg']['precision']
+        df_out.loc[ind, 'f1-score'] = report_dict['weighted avg']['f1-score']
+
+    df_out.to_excel('model_evaluation.xlsx', index=False)
+    print(df_out)
 
 
 def save_model(model, model_filepath):
@@ -185,7 +204,7 @@ def main():
         X, Y, category_names = load_data(database_filepath)
 
         # split data into training/test sets
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.3)
 
         # build model
         print('Building model...')

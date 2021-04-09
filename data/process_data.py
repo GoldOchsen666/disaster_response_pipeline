@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
     """
-    load data from csv files and merges them together
+    load data from both csv files and merges them on their id
 
     Parameters
     ----------
@@ -37,7 +37,7 @@ def load_data(messages_filepath, categories_filepath):
 
 def clean_data(df, categories):
     """
-    clean data by converting the categories column into several columns containing only the
+    clean data by converting the "categories" column into several columns containing only the
     important information and finally remove duplicates!
 
     Parameters
