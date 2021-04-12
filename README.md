@@ -1,7 +1,12 @@
 # Disaster Response Pipeline Project
 
 ### About The Project
-Repository contains code (and data) to categorize disaster messages using a supervised machine learning model.
+When a disaster such as a hurricane, snowstorm, famine, etc. happens, a lot of text messages will
+be sent through messanger apps, social media and news channels. It may be of importance to 
+automatically categorize those texts such that help can come from the right/correct organisation!
+Therefore, to help better categorize/classify the texts into different categories, we are using
+around 26,000 text messages to train and test a supervised classification model with 36 categories
+as response variables. The repository contains the code (and data) to do exactly that.
 
 ### Project Organisation
 ```
