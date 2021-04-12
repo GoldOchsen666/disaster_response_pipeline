@@ -17,8 +17,8 @@ as response variables. The repository contains the code (and data) to do exactly
 |- run.py  # Flask file that runs app
 
 - data
-|- disaster_categories.csv  # input data
-|- disaster_messages.csv  # input data
+|- disaster_categories.csv  # category input data
+|- disaster_messages.csv  # message input data
 |- process_data.py      # code to preprocess data
 |- DisasterResponse.db   # database to save cleaned data to
 
